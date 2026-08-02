@@ -249,6 +249,10 @@
         <label id="classLabel">Class / Section</label>
         <input id="signupClass" type="text" placeholder="e.g. BS-IT 5th">
       </div>
+      <div class="field" id="adminPassFieldWrap" style="display:none;">
+        <label>Admin Password</label>
+        <input id="signupAdminPass" type="password" placeholder="Ask department admin">
+      </div>
       <button class="btn-primary" style="background:var(--gold); color:var(--navy-deep);" onclick="handleSignup()" id="signupBtn">Create account</button>
     </div>
   </div>
@@ -424,6 +428,7 @@ function setRole(role){
   $('loginPin').placeholder = role==='student' ? '4–6 digit PIN' : 'Your password';
   $('classLabel').textContent = role==='student' ? 'Class / Section' : 'Subject(s) you teach';
   $('classFieldWrap').style.display = 'block';
+  $('adminPassFieldWrap').style.display = role==='teacher' ? 'block' : 'none';
 }
 
 function toggleSignup(){
@@ -449,12 +454,16 @@ async function handleSignup(){
   const pin = $('loginPin').value.trim();
   const name = $('signupName').value.trim();
   const className = $('signupClass').value.trim();
+  const adminPass = $('signupAdminPass').value.trim();
 
   if (!id || !pin || !name){
     showAuthMsg('Sab fields fill karein', 'error'); return;
   }
   if (pin.length < 4){
     showAuthMsg('PIN kam az kam 4 digits ka ho', 'error'); return;
+  }
+  if (currentRole === 'teacher' && adminPass !== 'Ahsan9900'){
+    showAuthMsg('Admin password ghalat hai', 'error'); return;
   }
 
   $('signupBtn').innerHTML = '<span class="spinner"></span>Creating...';

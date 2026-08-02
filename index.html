@@ -215,10 +215,10 @@
   <div class="auth-card">
     <div class="auth-eyebrow">Dept. of Medical Laboratory Technology · University of Okara</div>
     <h1>Assignment Portal</h1>
-    <p class="sub">Roll number aur PIN se login karein</p>
+    <p class="sub">Sign in with your Roll Number and PIN</p>
 
     <div id="setupBanner" class="setup-banner" style="display:none;">
-      ⚠️ Firebase config abhi set nahi hui. <b>index.html</b> mein <code>firebaseConfig</code> object apni Firebase project ki keys se fill karein, phir reload karein.
+      ⚠️ Firebase config is not set yet. Fill in the <code>firebaseConfig</code> object in <b>index.html</b> with your Firebase project keys, then reload.
     </div>
 
     <div class="role-toggle">
@@ -411,7 +411,7 @@ function toast(msg){
 
 function requireFirebase(){
   if (!firebaseReady){
-    toast("Pehle Firebase config set karein");
+    toast("Please set up Firebase config first");
     return false;
   }
   return true;
@@ -457,13 +457,13 @@ async function handleSignup(){
   const adminPass = $('signupAdminPass').value.trim();
 
   if (!id || !pin || !name){
-    showAuthMsg('Sab fields fill karein', 'error'); return;
+    showAuthMsg('Please fill in all fields', 'error'); return;
   }
   if (pin.length < 4){
-    showAuthMsg('PIN kam az kam 4 digits ka ho', 'error'); return;
+    showAuthMsg('PIN must be at least 4 digits', 'error'); return;
   }
   if (currentRole === 'teacher' && adminPass !== 'Ahsan9900'){
-    showAuthMsg('Admin password ghalat hai', 'error'); return;
+    showAuthMsg('Incorrect admin password', 'error'); return;
   }
 
   $('signupBtn').innerHTML = '<span class="spinner"></span>Creating...';
@@ -471,7 +471,7 @@ async function handleSignup(){
     const userRef = db.collection('users').doc(currentRole + '_' + id);
     const existing = await userRef.get();
     if (existing.exists){
-      showAuthMsg('Ye account pehle se maujood hai. Sign in karein.', 'error');
+      showAuthMsg('This account already exists. Please sign in.', 'error');
       $('signupBtn').textContent = 'Create account';
       return;
     }
@@ -479,7 +479,7 @@ async function handleSignup(){
       rollNo: id, pin: pin, name: name, role: currentRole, className: className,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showAuthMsg('Account ban gaya! Ab sign in karein.', 'info');
+    showAuthMsg('Account created! Please sign in.', 'info');
     toggleSignup();
   } catch(e){
     console.error(e);
@@ -493,13 +493,13 @@ async function handleLogin(){
   if (!requireFirebase()) return;
   const id = $('loginId').value.trim();
   const pin = $('loginPin').value.trim();
-  if (!id || !pin){ showAuthMsg('Roll number aur PIN dalein', 'error'); return; }
+  if (!id || !pin){ showAuthMsg('Please enter Roll Number and PIN', 'error'); return; }
 
   $('loginBtn').innerHTML = '<span class="spinner"></span>Signing in...';
   try {
     const doc = await db.collection('users').doc(currentRole + '_' + id).get();
     if (!doc.exists || doc.data().pin !== pin){
-      showAuthMsg('Roll number ya PIN ghalat hai', 'error');
+      showAuthMsg('Incorrect Roll Number or PIN', 'error');
       $('loginBtn').textContent = 'Sign in';
       return;
     }
@@ -575,7 +575,7 @@ async function loadStudentAssignments(){
       .orderBy('dueDate','asc').get();
 
     if (snap.empty){
-      el.innerHTML = '<div class="empty"><div class="glyph">📭</div><p>Koi assignment abhi nahi hai.</p></div>';
+      el.innerHTML = '<div class="empty"><div class="glyph">📭</div><p>No assignments yet.</p></div>';
       return;
     }
 
@@ -610,7 +610,7 @@ async function loadStudentAssignments(){
     });
   } catch(e){
     console.error(e);
-    el.innerHTML = '<div class="empty"><p>Load nahi hua: '+e.message+'</p></div>';
+    el.innerHTML = '<div class="empty"><p>Failed to load: '+e.message+'</p></div>';
   }
 }
 
@@ -635,9 +635,9 @@ async function doSubmitAssignment(){
   if (!requireFirebase()) return;
   const text = $('submitText').value.trim();
   const file = $('submitFile').files[0];
-  if (!text && !file){ toast('Text likhein ya file attach karein'); return; }
+  if (!text && !file){ toast('Please write text or attach a file'); return; }
   if (file && file.size > 700*1024){
-    toast('File 700KB se choti honi chahiye');
+    toast('File must be smaller than 700KB');
     return;
   }
   $('submitAssignBtn').innerHTML = '<span class="spinner"></span>Submitting...';
@@ -678,7 +678,7 @@ async function loadStudentResults(){
     snap.forEach(d=>{ if (d.data().grade) graded.push(d.data()); });
 
     if (graded.length===0){
-      el.innerHTML = '<div class="empty"><div class="glyph">🗂️</div><p>Abhi koi result upload nahi hua.</p></div>';
+      el.innerHTML = '<div class="empty"><div class="glyph">🗂️</div><p>No results uploaded yet.</p></div>';
       return;
     }
     el.innerHTML = '';
@@ -697,7 +697,7 @@ async function loadStudentResults(){
     }
   } catch(e){
     console.error(e);
-    el.innerHTML = '<div class="empty"><p>Load nahi hua: '+e.message+'</p></div>';
+    el.innerHTML = '<div class="empty"><p>Failed to load: '+e.message+'</p></div>';
   }
 }
 
@@ -710,7 +710,7 @@ async function loadTeacherAssignments(){
       .where('createdBy','==', currentUser.rollNo)
       .orderBy('dueDate','desc').get();
     if (snap.empty){
-      el.innerHTML = '<div class="empty"><div class="glyph">📝</div><p>Koi assignment nahi bani. Neeche + button se banayein.</p></div>';
+      el.innerHTML = '<div class="empty"><div class="glyph">📝</div><p>No assignments created yet. Use the + button below.</p></div>';
       return;
     }
     el.innerHTML = '';
@@ -728,7 +728,7 @@ async function loadTeacherAssignments(){
     });
   } catch(e){
     console.error(e);
-    el.innerHTML = '<div class="empty"><p>Load nahi hua: '+e.message+'</p></div>';
+    el.innerHTML = '<div class="empty"><p>Failed to load: '+e.message+'</p></div>';
   }
 }
 
@@ -744,7 +744,7 @@ async function doCreateAssignment(){
   const desc = $('newAssignDesc').value.trim();
   const className = $('newAssignClass').value.trim();
   const due = $('newAssignDue').value;
-  if (!title || !className){ toast('Title aur Class fill karein'); return; }
+  if (!title || !className){ toast('Please fill in Title and Class'); return; }
 
   $('createAssignBtn').innerHTML = '<span class="spinner"></span>Creating...';
   try {
@@ -774,7 +774,7 @@ async function loadTeacherSubmissions(){
     assignSnap.forEach(d=>{ myAssignIds.push(d.id); titleMap[d.id]=d.data().title; });
 
     if (myAssignIds.length===0){
-      el.innerHTML = '<div class="empty"><div class="glyph">📥</div><p>Pehle koi assignment banayein.</p></div>';
+      el.innerHTML = '<div class="empty"><div class="glyph">📥</div><p>Create an assignment first.</p></div>';
       return;
     }
 
@@ -789,7 +789,7 @@ async function loadTeacherSubmissions(){
     }
 
     if (allSubs.length===0){
-      el.innerHTML = '<div class="empty"><div class="glyph">📥</div><p>Abhi koi submission nahi aayi.</p></div>';
+      el.innerHTML = '<div class="empty"><div class="glyph">📥</div><p>No submissions yet.</p></div>';
       return;
     }
 
@@ -817,13 +817,13 @@ async function loadTeacherSubmissions(){
     });
   } catch(e){
     console.error(e);
-    el.innerHTML = '<div class="empty"><p>Load nahi hua: '+e.message+'</p></div>';
+    el.innerHTML = '<div class="empty"><p>Failed to load: '+e.message+'</p></div>';
   }
 }
 
 function downloadSubmissionFile(subId){
   const s = (window._loadedSubs||[]).find(x=>x.id===subId);
-  if (!s || !s.fileData){ toast('File nahi mili'); return; }
+  if (!s || !s.fileData){ toast('File not found'); return; }
   const a = document.createElement('a');
   a.href = s.fileData;
   a.download = s.fileName || 'submission';
@@ -844,7 +844,7 @@ async function doSaveGrade(){
   if (!requireFirebase()) return;
   const marks = $('gradeMarks').value.trim();
   const feedback = $('gradeFeedback').value.trim();
-  if (!marks){ toast('Marks/grade dalein'); return; }
+  if (!marks){ toast('Please enter marks/grade'); return; }
   $('saveGradeBtn').innerHTML = '<span class="spinner"></span>Saving...';
   try {
     await db.collection('submissions').doc(gradeTargetSubId).update({
